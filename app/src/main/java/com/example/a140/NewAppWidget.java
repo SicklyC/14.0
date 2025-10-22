@@ -9,6 +9,7 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
@@ -18,6 +19,8 @@ import android.widget.RemoteViews;
 public class NewAppWidget extends AppWidgetProvider {
 
     private static final String TAG = "NewAppWidget";
+    private static final String ACTION_RESTART_WIDGET = "com.example.a140.ACTION_RESTART_WIDGET";
+
 
     @SuppressLint("DefaultLocale")
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
@@ -110,6 +113,11 @@ public class NewAppWidget extends AppWidgetProvider {
         views.setTextViewText(R.id.appwidget_text, widgetText);
         views.setInt(R.id.appwidget_text, "setTextColor",Color.BLACK);
 
+        Intent intent = new Intent(context, NewAppWidget.class);
+        intent.setAction(ACTION_RESTART_WIDGET);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        views.setOnClickPendingIntent(R.id.restart_widget_button3, pendingIntent);
+
         RemoteViews remoteViews = new RemoteViews(context.getPackageName(),
                 R.layout.new_app_widget);
         remoteViews.setInt(R.id.appwidget_text, "setBackgroundColor", Color.BLACK);
@@ -133,6 +141,17 @@ public class NewAppWidget extends AppWidgetProvider {
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         for (int appWidgetId : appWidgetIds) {
             updateAppWidget(context, appWidgetManager, appWidgetId);
+        }
+    }
+
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        super.onReceive(context, intent);
+        if (ACTION_RESTART_WIDGET.equals(intent.getAction())) {
+            AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+            ComponentName thisAppWidget = new ComponentName(context.getPackageName(), NewAppWidget.class.getName());
+            int[] appWidgetIds = appWidgetManager.getAppWidgetIds(thisAppWidget);
+            onUpdate(context, appWidgetManager, appWidgetIds);
         }
     }
 
